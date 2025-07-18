@@ -1,0 +1,7 @@
+{ ... }:
+{
+  imports = [
+    ./entry.nix
+    ./loader
+  ];
+}
