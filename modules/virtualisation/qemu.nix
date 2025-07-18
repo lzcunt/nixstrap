@@ -30,7 +30,7 @@ in
         -drive if=pflash,format=raw,file=${ovmf.firmware},unit=0,readonly=on \
         -device qemu-xhci \
         -device usb-kbd \
-        -device ramfb \
+        ${lib.optionalString (!pkgs.stdenv.hostPlatform.isx86) "-device ramfb"} \
         -serial mon:stdio
     '';
   };
