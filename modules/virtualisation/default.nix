@@ -1,4 +1,9 @@
-{ config, lib, hostPkgs, ... }:
+{
+  config,
+  lib,
+  hostPkgs,
+  ...
+}:
 let
   inherit (lib) types mkOption;
   cfg = config.virtualisation;

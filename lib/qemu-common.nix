@@ -29,7 +29,7 @@ rec {
     qemuPkg:
     let
       hostStdenv = qemuPkg.stdenv;
-      guestCpu = hostStdenv.hostPlatform.parsed.cpu.name;
+      guestCpu = pkgs.stdenv.hostPlatform.parsed.cpu.name;
       qemuUseKvm =
         hostStdenv.hostPlatform.qemuArch == pkgs.stdenv.hostPlatform.qemuArch
         && hostStdenv.hostPlatform.isLinux;

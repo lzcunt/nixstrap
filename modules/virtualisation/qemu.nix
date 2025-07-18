@@ -1,4 +1,10 @@
-{ config, lib, pkgs, hostPkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  hostPkgs,
+  ...
+}:
 let
   inherit (lib) types mkPackageOption;
 
