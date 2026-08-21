@@ -76,7 +76,7 @@ in
     })
     (lib.mkIf (limineCfg.enable && cfg.makeEfiBootable) (
       let
-        efiExec = "BOOT${lib.toUpper pkgs.hostPlatform.efiArch}.EFI";
+        efiExec = "BOOT${lib.toUpper pkgs.stdenv.hostPlatform.efiArch}.EFI";
       in
       {
         isoImage.file."boot/limine-uefi-cd.bin".source =
