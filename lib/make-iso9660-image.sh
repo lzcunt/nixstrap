@@ -44,9 +44,32 @@ if test -n "$usbBootable"; then
 fi
 
 if test -n "$efiBootable"; then
-  efiBootFlags="-eltorito-alt-boot
-                -e $efiBootImage
+  # -append_partition needs the EFI boot image as a file outside the ISO
+  # file system, so find its source path in `contents'.
+  stripSlash "$efiBootImage"
+  efiBootImageIso="$res"
+  efiBootImageDisk=""
+  for ((i = 0; i < ${#targets[@]}; i++)); do
+    stripSlash "${targets[$i]}"
+    if test "$res" = "$efiBootImageIso"; then
+      efiBootImageDisk="${sources[$i]}"
+      break
+    fi
+  done
+
+  if test -z "$efiBootImageDisk"; then
+    echo "efiBootImage '$efiBootImage' is not among the ISO contents" >&2
+    exit 1
+  fi
+
+  # Appending the EFI boot image as a partition gives the ISO a partition
+  # table (MBR, plus GPT thanks to -part_like_isohybrid), which lets the
+  # firmware and Limine match the boot device handle with a volume.
+  efiBootFlags="-append_partition 2 0xef $efiBootImageDisk
+                -eltorito-alt-boot
+                -e --interval:appended_partition_2:all::
                 -no-emul-boot
+                -part_like_isohybrid
                 -isohybrid-gpt-basdat"
 fi
 
