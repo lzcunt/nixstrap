@@ -4,7 +4,7 @@ let
 
   targetPkgs = import hostPkgs.path {
     localSystem = hostPkgs.stdenv.buildPlatform;
-    crossSystem = pkgs.stdenv.hostPlatform;
+    crossSystem = "${pkgs.stdenv.hostPlatform.parsed.cpu.name}-linux";
     inherit (hostPkgs) config overlays;
   };
 in
