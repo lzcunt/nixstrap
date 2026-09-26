@@ -62,14 +62,14 @@ if test -n "$efiBootable"; then
     exit 1
   fi
 
-  # Appending the EFI boot image as a partition gives the ISO a partition
-  # table (MBR, plus GPT thanks to -part_like_isohybrid), which lets the
-  # firmware and Limine match the boot device handle with a volume.
+  # Appending the EFI boot image as a partition gives the ISO a GPT with an
+  # EFI system partition entry (and a protective MBR), so that firmware and
+  # Limine can match the boot device handle with a volume.
   efiBootFlags="-append_partition 2 0xef $efiBootImageDisk
                 -eltorito-alt-boot
                 -e --interval:appended_partition_2:all::
                 -no-emul-boot
-                -part_like_isohybrid
+                -appended_part_as_gpt
                 -isohybrid-gpt-basdat"
 fi
 
