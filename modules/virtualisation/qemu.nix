@@ -31,8 +31,8 @@ in
         -device qemu-xhci \
         -device usb-kbd \
         ${lib.optionalString (!pkgs.stdenv.hostPlatform.isx86) "-device ramfb"} \
-        -serial mon:stdio
-	"$@"
+        -serial mon:stdio \
+        "$@"
     '';
   };
 }
