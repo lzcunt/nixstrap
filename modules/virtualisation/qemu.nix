@@ -32,6 +32,7 @@ in
         -device usb-kbd \
         ${lib.optionalString (!pkgs.stdenv.hostPlatform.isx86) "-device ramfb"} \
         -serial mon:stdio
+	"$@"
     '';
   };
 }
