@@ -22,6 +22,7 @@ lib.evalModules {
     ./boot
     ./virtualisation
     ./isoImage.nix
+    ./cpioArchive.nix
     ./nixpkgs.nix
     ./system.nix
   ];
