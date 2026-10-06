@@ -81,8 +81,6 @@ for ((i = 0; i < ${#targets[@]}; i++)); do
     addPath "$res" "${sources[$i]}"
 done
 
-mkdir -p $out/iso
-
 xorriso="xorriso
   -volume_date all_file_dates =$SOURCE_DATE_EPOCH
   -as mkisofs
@@ -96,4 +94,4 @@ xorriso="xorriso
   -path-list pathlist
 "
 
-$xorriso -output $out/iso/$isoName
+$xorriso -output $out

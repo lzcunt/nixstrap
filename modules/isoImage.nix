@@ -48,6 +48,7 @@ in
 
       system.build.isoImage = pkgs.callPackage ../lib/make-iso9660-image.nix (
         {
+          isoName = "${config.system.label or "cd"}.iso";
           bootable = cfg.makeBiosBootable;
           bootImage =
             {
