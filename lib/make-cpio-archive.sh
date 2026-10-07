@@ -6,6 +6,13 @@ stripSlash() {
     while test "${#res}" -gt 1 && test "${res: -1}" = /; do res=${res:0:${#res}-1}; done
 }
 
+# Keep a staged subtree owner-writable so later entries can be grafted
+# into it (store paths are mode 555). Never touches symlinks; the final
+# normalisation below is idempotent.
+makeWritable() {
+    find "$1" \( -type f -o -type d \) -exec chmod u+rwX {} +
+}
+
 mkdir root
 
 # Stage the individual files at their target paths.
@@ -32,7 +39,42 @@ for ((i = 0; i < ${#targets[@]}; i++)); do
 
     mkdir -p "$(dirname "root/$target")"
     cp -R --preserve=mode,timestamps,links "${sources[$i]}" "root/$target"
+    makeWritable "root/$target"
 done
+
+# Graft the runtime closure of closurePaths at its original store paths.
+# Paths already staged above are skipped, so explicit contents win.
+if test -n "${closure-}"; then
+    while IFS= read -r p || test -n "$p"; do
+        if test -z "$p"; then
+            continue
+        fi
+        case "$p" in
+            /*) ;;
+            *)
+                echo "invalid store path '$p' in closure" >&2
+                exit 1
+                ;;
+        esac
+        if ! test -e "$p" && ! test -L "$p"; then
+            echo "closure path '$p' does not exist" >&2
+            exit 1
+        fi
+        rel="${p#/}"
+        dest="root/$rel"
+        if test -e "$dest" || test -L "$dest"; then
+            # Partially staged directory: fill in the missing children.
+            if test -d "$dest" && test -d "$p"; then
+                cp -Rn --preserve=mode,timestamps,links "$p/." "$dest/"
+                makeWritable "$dest"
+            fi
+            continue
+        fi
+        mkdir -p "$(dirname "$dest")"
+        cp -R --preserve=mode,timestamps,links "$p" "$dest"
+        makeWritable "$dest"
+    done < "$closure/store-paths"
+fi
 
 # Normalise timestamps and perms
 find root -exec touch -h -d "@${SOURCE_DATE_EPOCH:-0}" {} +

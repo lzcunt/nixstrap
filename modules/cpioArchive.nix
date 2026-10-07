@@ -52,6 +52,22 @@ in
                 `null` for none.
               '';
             };
+
+            closurePaths = lib.mkOption {
+              default = [ ];
+              type = lib.types.listOf (
+                lib.types.oneOf [
+                  lib.types.package
+                  lib.types.path
+                  lib.types.singleLineStr
+                ]
+              );
+              description = ''
+                Store paths whose full runtime closure is grafted into
+                the archive at their original `nix/store/...` locations,
+                in addition to the files listed in `file`.
+              '';
+            };
           };
         }
       )
@@ -64,7 +80,7 @@ in
         "${name}.cpio"
         + lib.optionalString (archive.compression != null) ".${suffixFor archive.compression}";
       contents = lib.filter (file: file.enable) (lib.attrValues archive.file);
-      inherit (archive) compression;
+      inherit (archive) compression closurePaths;
     }
   ) cfg;
 }

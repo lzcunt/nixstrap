@@ -5,6 +5,7 @@
   gzip,
   zstd,
   xz,
+  pkgsBuildHost,
 
   # The name of the resulting derivation (and thus the archive file).
   name ? "archive.cpio",
@@ -14,6 +15,10 @@
   # is the file system object (regular file, directory or symlink) to be
   # grafted in the archive at path `target'.
   contents,
+
+  # Store paths whose full runtime closure is grafted into the archive
+  # at its original store paths (nix/store/...), in addition to `contents'.
+  closurePaths ? [ ],
 
   # The cpio archive format (one of the formats accepted by `cpio -H').
   format ? "newc",
@@ -35,12 +40,15 @@ let
   compressors = {
     inherit gzip zstd xz;
   };
+
+  closure = if closurePaths == [ ] then "" else (pkgsBuildHost.closureInfo { rootPaths = closurePaths; }).outPath;
 in
 stdenv.mkDerivation {
   inherit
     name
     format
     owner
+    closure
     ;
 
   compression = if compression == null then "" else compression;
