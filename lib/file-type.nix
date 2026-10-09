@@ -7,6 +7,17 @@ in
 lib.types.attrsOf (
   lib.types.submodule (
     { name, config, ... }:
+    let
+      fromText = pkgs.writeTextFile {
+        inherit (config) text;
+        # TODO: executable = config.executable == true;
+        name = strings.storeFileName name;
+      };
+
+      fromSymlink = pkgs.runCommand (strings.storeFileName name) { } ''
+        ln -s -- ${lib.escapeShellArg config.symlink} "$out"
+      '';
+    in
     {
       options = {
         enable = lib.mkOption {
@@ -31,17 +42,47 @@ lib.types.attrsOf (
           description = ''
             Text of the file. If this option is null then
             [](#opt-${opt}._name_.source)
+            or [](#opt-${opt}._name_.symlink)
             must be set.
           '';
         };
 
         source = lib.mkOption {
           type = lib.types.path;
+          apply =
+            src:
+            let
+              conflict =
+                if config.text != null && config.symlink != null then
+                  "`text` and `symlink`"
+                else if config.symlink != null && toString src != toString fromSymlink then
+                  "`source` and `symlink`"
+                else
+                  null;
+            in
+            lib.throwIf (conflict != null) "${opt}: entry '${name}' must not set both ${conflict}" src;
           description = ''
             Path of the source file or directory. If
             [](#opt-${opt}._name_.text)
             is non-null then this option will automatically point to a file
-            containing that text.
+            containing that text, and if
+            [](#opt-${opt}._name_.symlink)
+            is non-null then it will automatically point to a symbolic link
+            to that path.
+          '';
+        };
+
+        symlink = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = ''
+            Path of the symbolic link to generate at
+            [](#opt-${opt}._name_.target),
+            either absolute or relative to the link's location. Mutually
+            exclusive with [](#opt-${opt}._name_.text) and an explicitly set
+            [](#opt-${opt}._name_.source).
+            The link's target is not followed, so it may dangle unless it is
+            part of the generated file system itself.
           '';
         };
 
@@ -59,14 +100,8 @@ lib.types.attrsOf (
 
       config = {
         target = lib.mkDefault name;
-        source = lib.mkIf (config.text != null) (
-          lib.mkDefault (
-            pkgs.writeTextFile {
-              inherit (config) text;
-              # TODO: executable = config.executable == true;
-              name = strings.storeFileName name;
-            }
-          )
+        source = lib.mkIf (config.text != null || config.symlink != null) (
+          lib.mkDefault (if config.symlink != null then fromSymlink else fromText)
         );
       };
     }
