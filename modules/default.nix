@@ -20,6 +20,7 @@ lib.evalModules {
     )
     configuration
     ./boot
+    ./fileSystems.nix
     ./virtualisation
     ./isoImage.nix
     ./cpioArchive.nix
