@@ -1,6 +1,12 @@
 { lib, ... }:
 let
   # FIXME: assertations for protocol-specific and leaf/branch-specific options
+  shallowDocs = type:
+    type
+    // {
+      getSubOptions = _: { };
+      substSubModules = m: shallowDocs (type.substSubModules m);
+    };
   entryType = lib.types.submodule (
     { name, config, ... }:
     {
@@ -25,7 +31,7 @@ let
         };
 
         child = lib.mkOption {
-          type = lib.types.attrsOf entryType;
+          type = lib.types.attrsOf (shallowDocs entryType);
           default = { };
           description = ''
             Sub-entries that will be used to generate the configuration needed for
