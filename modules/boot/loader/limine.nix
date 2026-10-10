@@ -13,6 +13,7 @@ in
     enable = lib.mkEnableOption "the limine bootloader";
 
     package = lib.mkOption {
+      description = "The limine package to use.";
       default = hostPkgs.limine.override {
         buildCDs = true;
         targets = [ pkgs.stdenv.hostPlatform.parsed.cpu.name ];
